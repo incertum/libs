@@ -489,7 +489,7 @@ inline bool parser::lex_quoted_str()
 			{
 				update_pos(*cursor(), m_pos);
 				m_last_token += delimiter;
-				m_last_token = escape_str(m_last_token);
+				m_last_token = unescape_str(m_last_token);
 				return true;
 			}
 			prev = *cursor();
@@ -591,7 +591,65 @@ inline const char* parser::cursor()
 	return m_input.c_str() + m_pos.idx;
 }
 
-string parser::escape_str(const string& str)
+std::string libsinsp::filter::escape_str(const std::string& str)
+{
+	std::string res = "";
+	size_t len = str.size();
+	bool should_escape = false;
+	for (size_t i = 0; i < len; i++)
+	{
+		switch(str[i])
+		{
+		case '\b':
+			should_escape = true;
+			res += "\\b";
+			break;
+		case '\f':
+			should_escape = true;
+			res += "\\f";
+			break;
+		case '\n':
+			should_escape = true;
+			res += "\\n";
+			break;
+		case '\r':
+			should_escape = true;
+			res += "\\r";
+			break;
+		case '\t':
+			should_escape = true;
+			res += "\\t";
+			break;
+		case ' ':
+			should_escape = true;
+			res += ' ';
+			break;
+		case '\\':
+			should_escape = true;
+			res += "\\\\";
+			break;
+		case '"':
+			should_escape = true;
+			res += "\\\"";
+			break;
+		case '\'':
+			should_escape = true;
+			res += "\\\"";
+			break;
+		default:
+			res += str[i];
+		}
+	}
+
+	if(should_escape)
+	{
+		res = "\"" + res + "\"";
+	}
+
+	return res;
+}
+
+string libsinsp::filter::unescape_str(const string& str)
 {
 	string res = "";
 	size_t len = str.size() - 1;

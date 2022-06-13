@@ -68,6 +68,14 @@ namespace libsinsp {
 namespace filter {
 
 /*!
+	\brief Methods to escape/unescape strings
+	\note Throws a sinsp_exception in case of parsing errors.
+	\return an escaped/unescaped verison of the string
+*/
+std::string escape_str(const std::string& str);
+std::string unescape_str(const std::string& str);
+
+/*!
 	\brief This class parses a sinsp filter string with a context-free
 	formal grammar and generates an AST.
 */
@@ -175,7 +183,6 @@ private:
 	void depth_push();
 	void depth_pop();
 	const char* cursor();
-	std::string escape_str(const std::string& str);
 	std::string trim_str(std::string str);
 
 	bool m_parse_partial;
