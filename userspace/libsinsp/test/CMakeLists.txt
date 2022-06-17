@@ -31,6 +31,7 @@ set(LIBSINSP_UNIT_TESTS_SOURCES
 	plugin_manager.ut.cpp
 	string_visitor.ut.cpp
 	filter_parser.ut.cpp
+	filter_parser_escape.ut.cpp
 	filter_op_bcontains.ut.cpp
 	filter_compiler.ut.cpp
 )
