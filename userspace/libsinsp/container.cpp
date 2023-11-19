@@ -92,11 +92,14 @@ bool sinsp_container_manager::remove_inactive_containers()
 			if(containers_in_use.find(it->first) == containers_in_use.end())
 			{
 				sinsp_container_info::ptr_t container = it->second;
+
+				notify_removed_container(*container);
+
 				for(const auto &remove_cb : m_remove_callbacks)
 				{
 					remove_cb(*container);
 				}
-				containers->erase(it++);
+				it = containers->erase(it);
 			}
 			else
 			{
@@ -251,7 +254,7 @@ std::string sinsp_container_manager::container_to_json(const sinsp_container_inf
 	return Json::FastWriter().write(obj);
 }
 
-bool sinsp_container_manager::container_to_sinsp_event(const std::string& json, sinsp_evt* evt, std::shared_ptr<sinsp_threadinfo> tinfo)
+bool sinsp_container_manager::container_to_sinsp_event(const std::string& json, sinsp_evt* evt, std::shared_ptr<sinsp_threadinfo> tinfo, ppm_event_code evt_type)
 {
 	size_t totlen = sizeof(scap_evt) + sizeof(uint32_t) + json.length() + 1;
 
@@ -278,7 +281,7 @@ bool sinsp_container_manager::container_to_sinsp_event(const std::string& json, 
 	}
 	scapevt->tid = -1;
 	scapevt->len = (uint32_t)totlen;
-	scapevt->type = PPME_CONTAINER_JSON_2_E;
+	scapevt->type = evt_type;
 	scapevt->nparams = 1;
 
 	uint32_t* lens = (uint32_t*)((char *)scapevt + sizeof(struct ppm_evt_hdr));
@@ -365,7 +368,7 @@ void sinsp_container_manager::notify_new_container(const sinsp_container_info& c
 
 	sinsp_evt *evt = new sinsp_evt();
 
-	if(container_to_sinsp_event(container_to_json(container_info), evt, container_info.get_tinfo(m_inspector)))
+	if(container_to_sinsp_event(container_to_json(container_info), evt, container_info.get_tinfo(m_inspector), (ppm_event_code)PPME_CONTAINER_JSON_2_E))
 	{
 		g_logger.format(sinsp_logger::SEV_DEBUG,
 				"notify_new_container (%s): created CONTAINER_JSON event, queuing to inspector",
@@ -385,6 +388,31 @@ void sinsp_container_manager::notify_new_container(const sinsp_container_info& c
 	}
 }
 
+void sinsp_container_manager::notify_removed_container(const sinsp_container_info& container_info, sinsp_threadinfo *tinfo)
+{
+
+	sinsp_evt *evt = new sinsp_evt();
+
+	if(container_to_sinsp_event(container_to_json(container_info), evt, container_info.get_tinfo(m_inspector), (ppm_event_code)PPME_CONTAINER_JSON_2_X))
+	{
+		g_logger.format(sinsp_logger::SEV_DEBUG,
+				"notify_removed_container (%s): created CONTAINER_JSON event, queuing to inspector",
+				container_info.m_id.c_str());
+
+		std::shared_ptr<sinsp_evt> cevt(evt);
+
+		// Enqueue it onto the queue of pending container events for the inspector
+		m_inspector->m_pending_state_evts.push(cevt);
+	}
+	else
+	{
+		g_logger.format(sinsp_logger::SEV_ERROR,
+				"notify_removed_container (%s): could not create CONTAINER_JSON event, dropping",
+				container_info.m_id.c_str());
+		delete evt;
+	}
+}
+
 bool sinsp_container_manager::async_allowed() const
 {
 	// Until sinsp is not started, force-run synchronously
@@ -396,7 +424,7 @@ void sinsp_container_manager::dump_containers(sinsp_dumper& dumper)
 	for(const auto& it : (*m_containers.lock()))
 	{
 		sinsp_evt evt;
-		if(container_to_sinsp_event(container_to_json(*it.second), &evt, it.second->get_tinfo(m_inspector)))
+		if(container_to_sinsp_event(container_to_json(*it.second), &evt, it.second->get_tinfo(m_inspector), (ppm_event_code)PPME_CONTAINER_JSON_2_E))
 		{
 			dumper.dump(&evt);
 		}

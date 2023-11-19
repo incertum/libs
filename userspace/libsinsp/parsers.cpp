@@ -488,6 +488,7 @@ void sinsp_parser::process_event(sinsp_evt *evt)
 		break;
 	case PPME_CONTAINER_JSON_E:
 	case PPME_CONTAINER_JSON_2_E:
+	case PPME_CONTAINER_JSON_2_X:
 		parse_container_json_evt(evt);
 		break;
 	case PPME_CPU_HOTPLUG_E:
@@ -5589,7 +5590,10 @@ void sinsp_parser::parse_container_json_evt(sinsp_evt *evt)
 		}
 		evt->m_tinfo_ref = container_info->get_tinfo(m_inspector);
 		evt->m_tinfo = evt->m_tinfo_ref.get();
-		m_inspector->m_container_manager.add_container(container_info, evt->get_thread_info(true));
+		if (evt->get_type() == PPME_CONTAINER_JSON_2_E)
+		{
+			m_inspector->m_container_manager.add_container(container_info, evt->get_thread_info(true));
+		}
 		/*
 		SINSP_STR_DEBUG("Container\n-------\nID:" + container_info.m_id +
 		                "\nType: " + std::to_string(container_info.m_type) +

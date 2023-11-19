@@ -156,7 +156,11 @@ std::shared_ptr<sinsp_threadinfo> sinsp_container_info::get_tinfo(sinsp* inspect
 	tinfo->m_vpid = -2;
 	tinfo->m_comm = "container:" + m_id;
 	tinfo->m_exe = "container:" + m_id;
+	tinfo->m_exepath = "container:" + m_id;
 	tinfo->m_container_id = m_id;
+
+	tinfo->m_pidns_init_start_ts = m_created_time > 0 ? m_created_time * SECOND_TO_NS : 0;
+	tinfo->m_clone_ts = 1; // need some dummy value != 0
 
 	return tinfo;
 }

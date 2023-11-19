@@ -99,10 +99,17 @@ public:
 	 * @brief Generate container JSON event from a new container
 	 * @param container_info reference to the new sinsp_container_info
 	 *
+	 */
+	void notify_new_container(const sinsp_container_info& container_info, sinsp_threadinfo *tinfo = nullptr) override;
+
+	/**
+	 * @brief Generate container JSON event from a new container
+	 * @param container_info reference to the new sinsp_container_info
+	 *
 	 * Note: this is unrelated to on_new_container callbacks even though
 	 * both happen during container creation
 	 */
-	void notify_new_container(const sinsp_container_info& container_info, sinsp_threadinfo *tinfo = nullptr) override;
+	void notify_removed_container(const sinsp_container_info& container_info, sinsp_threadinfo *tinfo = nullptr);
 
 	bool async_allowed() const override;
 
@@ -215,7 +222,7 @@ public:
 	}
 private:
 	std::string container_to_json(const sinsp_container_info& container_info);
-	bool container_to_sinsp_event(const std::string& json, sinsp_evt* evt, std::shared_ptr<sinsp_threadinfo> tinfo);
+	bool container_to_sinsp_event(const std::string& json, sinsp_evt* evt, std::shared_ptr<sinsp_threadinfo> tinfo, ppm_event_code evt_type);
 	std::string get_docker_env(const Json::Value &env_vars, const std::string &mti);
 
 	std::list<std::shared_ptr<libsinsp::container_engine::container_engine_base>> m_container_engines;

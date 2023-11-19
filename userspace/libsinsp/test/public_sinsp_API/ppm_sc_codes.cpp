@@ -183,6 +183,7 @@ const libsinsp::events::set<ppm_event_code> expected_sinsp_state_event_set = {
 	PPME_NOTIFICATION_E,
 	PPME_INFRASTRUCTURE_EVENT_E,
 	PPME_CONTAINER_JSON_2_E,
+	PPME_CONTAINER_JSON_2_X,
 	PPME_USER_ADDED_E,
 	PPME_USER_DELETED_E,
 	PPME_GROUP_ADDED_E,
@@ -289,7 +290,6 @@ const libsinsp::events::set<ppm_event_code> expected_unknown_event_set = {
 	PPME_USER_DELETED_X,
 	PPME_GROUP_ADDED_X,
 	PPME_GROUP_DELETED_X,
-	PPME_CONTAINER_JSON_2_X,
 	PPME_PAGE_FAULT_X,
 	PPME_INFRASTRUCTURE_EVENT_X,
 	PPME_NOTIFICATION_X,
@@ -383,7 +383,7 @@ TEST(ppm_sc_API, generic_syscalls_set)
 	// Load generic syscalls in the sinsp_generic_syscalls_set
 	for(uint32_t ppm_sc = 0; ppm_sc < PPM_SC_MAX; ppm_sc++)
 	{
-		if (generic_syscalls_enter[ppm_sc])
+		if (generic_syscalls_enter[ppm_sc] || generic_syscalls_exit[ppm_sc])
 		{
 			sinsp_generic_syscalls_set.insert((ppm_sc_code)ppm_sc);
 		}
@@ -577,7 +577,7 @@ TEST(ppm_sc_API, AES_sc_set_AES)
 /* Information Enrichment */
 TEST(ppm_sc_API, SES_names_SES)
 {
-	const libsinsp::events::set<ppm_event_code> shared_events{PPME_GENERIC_E, PPME_SYSCALL_CLONE_11_E, PPME_CONTAINER_JSON_2_E, PPME_PLUGINEVENT_E, PPME_SYSCALL_CLOSE_X, PPME_SCAPEVENT_E, PPME_PROCEXIT_1_X};
+	const libsinsp::events::set<ppm_event_code> shared_events{PPME_GENERIC_E, PPME_SYSCALL_CLONE_11_E, PPME_CONTAINER_JSON_2_E, PPME_CONTAINER_JSON_2_X, PPME_PLUGINEVENT_E, PPME_SYSCALL_CLOSE_X, PPME_SCAPEVENT_E, PPME_PROCEXIT_1_X};
 	const auto shared_events_names = libsinsp::events::event_set_to_names(shared_events);
 	std::set<std::string> some_desired_event_names{"alarm", "clone", "container", "pluginevent", "close", "scapevent", "NA"}; // PPME_PROCEXIT_1_X is UNKNOWN
 	ASSERT_CONTAINS(shared_events_names, some_desired_event_names);
@@ -598,6 +598,7 @@ TEST(ppm_sc_API, SES_names_SES)
 		PPME_CONTAINER_E, // CONTAINER_X is unknown
 		PPME_CONTAINER_JSON_E,
 		PPME_CONTAINER_JSON_2_E,
+		PPME_CONTAINER_JSON_2_X,
 		PPME_PLUGINEVENT_E,
 		PPME_SYSCALL_CLOSE_E,
 		PPME_SYSCALL_CLOSE_X,
@@ -665,6 +666,7 @@ TEST(ppm_sc_API, NGES_names_NGES)
 		PPME_CONTAINER_E,
 		PPME_CONTAINER_JSON_E,
 		PPME_CONTAINER_JSON_2_E,
+		PPME_CONTAINER_JSON_2_X,
 		PPME_PLUGINEVENT_E,
 		PPME_SYSCALL_CLOSE_E,
 		PPME_SYSCALL_CLOSE_X};
